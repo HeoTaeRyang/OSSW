@@ -144,6 +144,14 @@ class Reservation:
         self.content = procedure.getName()
         self.time = procedure.getTime()
         self.reservation_person_num = reservation_person_num
+    def getStartTime(self):
+        return self.start_time
+    def getContent(self):
+        return self.content
+    def getTime(self):
+        return self.time
+    def getReservationPersonNum(self):
+        return self.reservation_person_num
         
 class Schedule:
     def __init__(self, start_time, content, time):
