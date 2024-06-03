@@ -126,3 +126,8 @@ class Shop:
         else:
             print("일 휴무")
         print("가게번호",self.num)
+        
+class Procedure:
+    def __init__(self, name, time):
+        self.name = name
+        self.time = time
