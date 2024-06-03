@@ -44,3 +44,26 @@ while line:
     shops.append(tmp)
     line = file.readline()
 file.close()
+
+def addShopOwner(shop_owner):
+    shop_owners.append(shop_owner)
+    tmp = [shop_owner.getID(),shop_owner.getPW(),shop_owner.getName(),shop_owner.getTel(),str(shop_owner.getNum())]+list(map(str,shop_owner.getShopNums()))
+    file = open('db\shop_owners.txt', 'a', encoding="UTF-8")
+    file.writelines(','.join(tmp))
+    file.write("\n")
+    file.close()
+def addShopStaff(shop_staff):
+    shop_staffs.append(shop_staff)
+    tmp = [shop_staff.getID(),shop_staff.getPW(),shop_staff.getName(),shop_staff.getTel(),str(shop_staff.getNum()),str(shop_staff.getShopNum())]
+    file = open('db\shop_staffs.txt', 'a', encoding="UTF-8")
+    file.writelines(','.join(tmp))
+    file.write("\n")
+    file.close()
+def addCustomer(customer):
+    customers.append(customer)
+    tmp = [customer.getID(),customer.getPW(),customer.getName(),customer.getTel(),str(customer.getNum())]
+    file = open('db\customers.txt', 'a', encoding="UTF-8")
+    file.writelines(','.join(tmp))
+    file.write("\n")
+    file.close()
+# def addShop(shop):
