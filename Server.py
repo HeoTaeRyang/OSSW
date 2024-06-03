@@ -51,11 +51,28 @@ def delShop(shop_num):
     
 # def addStaffToShop():
 # def addProcedureToStaff():
-# def addReservation():
+def addReservation(shop_num, staff_num, date,  reservation, start_time):
+    reservations_and_schedules = []
+    if os.path.exists(f"db\\shops\\{shop_num}\\{staff_num}\\{date}.pickle"):
+        with open(f"db\\shops\\{shop_num}\\{staff_num}\\{date}.pickle","rb") as fr:
+            reservations_and_schedules =  pickle.load(fr)
+    check = 0
+    for i in range(len(reservations_and_schedules)):
+        if reservations_and_schedules[i].getStartTime() > start_time:
+            reservations_and_schedules.insert(i,reservation)
+            check = 1
+            break
+    if check == 0:
+        reservations_and_schedules.append(reservation)
+    with open(f"db\\shops\\{shop_num}\\{staff_num}\\{date}.pickle","wb") as fw:
+        pickle.dump(reservations_and_schedules,fw)
 # def addSchedule():
 # def delReservation():
 # def delSchedule():
-def getReservations(shop_num, staff_num, date):
+def getReservationsAndSchedules(shop_num, staff_num, date):
     with open(f"db\\shops\\{shop_num}\\{staff_num}\\{date}.pickle","rb") as fr:
         return pickle.load(fr)
 # def getSchedules():
+def getProcedures(shop_num, staff_num):
+    with open(f"db\\shops\\{shop_num}\\{staff_num}\\procedures.pickle","rb") as fr:
+        return pickle.load(fr)
