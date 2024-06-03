@@ -132,7 +132,20 @@ class Procedure:
         self.name = name
         self.time = time
         
-class ReservationAndSchedule:
+    def getName(self):
+        return self.name
+
+    def getTime(self):
+        return self.time
+        
+class Reservation:
+    def __init__(self, start_time, procedure, reservation_person_num):
+        self.start_time = start_time
+        self.content = procedure.getName()
+        self.time = procedure.getTime()
+        self.reservation_person_num = reservation_person_num
+        
+class Schedule:
     def __init__(self, start_time, content, time):
         self.start_time = start_time
         self.content = content
