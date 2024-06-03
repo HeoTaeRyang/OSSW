@@ -158,3 +158,9 @@ class Schedule:
         self.start_time = start_time
         self.content = content
         self.time = time
+    def getStartTime(self):
+        return self.start_time
+    def getContent(self):
+        return self.content
+    def getTime(self):
+        return self.time
