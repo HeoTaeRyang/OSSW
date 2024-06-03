@@ -12,15 +12,15 @@ class Registration:
     def checkID(self):
         if self.classification == 0:
             for i in range(len(Server.shop_owners)):
-                if Server.shop_owners[i].getID == self.ID:
+                if Server.shop_owners[i].getID() == self.ID:
                     return False
         if self.classification == 1:
             for i in range(len(Server.shop_staffs)):
-                if Server.shop_staffs[i].getID == self.ID:
+                if Server.shop_staffs[i].getID() == self.ID:
                     return False
         if self.classification == 2:
             for i in range(len(Server.customers)):
-                if Server.customers[i].getID == self.ID:
+                if Server.customers[i].getID() == self.ID:
                     return False
         return True
 
