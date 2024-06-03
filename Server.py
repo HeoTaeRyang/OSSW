@@ -30,22 +30,25 @@ def addCustomer(customer):
         pickle.dump(customers,fw)
     
 def addShop(shop):
-    if shop.getNum < len(shops):
-        shops[shop.getNum] = shop
+    if shop.getNum() < len(shops):
+        shops[shop.getNum()] = shop
     else:
         shops.append(shop)
-    os.mkdir(f"shops\\{shop.getNum}")
+    os.mkdir(f"db\\shops\\{shop.getNum()}")
+    with open("db\\shops.pickle","wb") as fw:
+        pickle.dump(shops,fw)
+    
     
     
 def delShop(shop_num):
     shops[shop_num].num = -1
     with open("db\\shops.pickle","wb") as fw:
         pickle.dump(customers,fw)
-    for i in range(len(shop_staffs)):
-        if shop_staffs[i].getShopNum == shop_num:
-            shop_staffs[i].num = -1
-    with open("db\\members\\shop_staffs.pickle","wb") as fw:
-        pickle.dump(shop_staffs,fw)
+    for i in range(len(shops)):
+        if shops[i].getShopNum == shop_num:
+            shops[i].num = -1
+    with open("db\\shops.pickle","wb") as fw:
+        pickle.dump(shops,fw)
     shutil.rmtree(f'db\\shops\\{shop_num}')
     
     
