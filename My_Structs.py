@@ -132,14 +132,8 @@ class Procedure:
         self.name = name
         self.time = time
         
-class Reservation:
-    def __init__(self, start_time, procedure):
-        self.start_time = start_time
-        self.procedure = procedure
-        
-class Schedule:
+class ReservationAndSchedule:
     def __init__(self, start_time, content, time):
         self.start_time = start_time
         self.content = content
         self.time = time
-        
