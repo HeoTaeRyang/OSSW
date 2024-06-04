@@ -2,6 +2,12 @@ import pickle
 import os
 import shutil
 
+# with open("db\\members\\shop_owners.pickle","wb") as fw:
+#         pickle.dump([],fw)
+        
+# with open("db\\shops.pickle","wb") as fw:
+#         pickle.dump([],fw)
+
 with open("db\\members\\shop_owners.pickle","rb") as fr:
     shop_owners = pickle.load(fr)
 
@@ -38,23 +44,47 @@ def addShop(shop):
     with open("db\\shops.pickle","wb") as fw:
         pickle.dump(shops,fw)
     
-    
-    
-def delShop(shop_num):
+def delShop(shop_num,shop_owner_num):
+    shutil.rmtree(f'db\\shops\\{shop_num}')
     shops[shop_num].num = -1
     with open("db\\shops.pickle","wb") as fw:
-        pickle.dump(customers,fw)
-    for i in range(len(shops)):
-        if shops[i].getShopNum == shop_num:
-            shops[i].num = -1
+        pickle.dump(shops,fw)
+    tmp_l = shop_owners[shop_owner_num].getShopNums()
+    for i in range(len(tmp_l)):
+        if tmp_l[i] == shop_num:
+            del tmp_l[i]
+            break
+    shop_owners[shop_owner_num].shop_nums = tmp_l
     with open("db\\shops.pickle","wb") as fw:
         pickle.dump(shops,fw)
-    shutil.rmtree(f'db\\shops\\{shop_num}')
+    with open("db\\members\\shop_owners.pickle","wb") as fw:
+        pickle.dump(shop_owners,fw)
+    
+def modShop(shop_num, shop):
+    shops[shop_num] = shop
+    with open("db\\shops.pickle","wb") as fw:
+        pickle.dump(shops,fw)
+        
+def addShopToShopOwner(shop_owner_num, shop_num):
+    shop_nums = shop_owners[shop_owner_num].getShopNums()
+    check = 0
+    for i in range(len(shop_nums)):
+        if shop_nums[i] > shop_num:
+            shop_nums.insert(i,shop_num)
+            check = 1
+            break
+    if check == 0:
+        shop_nums.append(shop_num)
+    shop_owners[shop_owner_num].shop_nums = shop_nums
+    with open("db\\members\\shop_owners.pickle","wb") as fw:
+        pickle.dump(shop_owners,fw)
     
     
 # def addStaffToShop():
+
 # def addProcedureToStaff():
-def addReservation(shop_num, staff_num, date,  reservation, start_time):
+
+def addReservationAndSchedule(shop_num, staff_num, date,  reservation_and_schedule, start_time):
     reservations_and_schedules = []
     if os.path.exists(f"db\\shops\\{shop_num}\\{staff_num}\\{date}.pickle"):
         with open(f"db\\shops\\{shop_num}\\{staff_num}\\{date}.pickle","rb") as fr:
@@ -62,20 +92,20 @@ def addReservation(shop_num, staff_num, date,  reservation, start_time):
     check = 0
     for i in range(len(reservations_and_schedules)):
         if reservations_and_schedules[i].getStartTime() > start_time:
-            reservations_and_schedules.insert(i,reservation)
+            reservations_and_schedules.insert(i,reservation_and_schedule)
             check = 1
             break
     if check == 0:
-        reservations_and_schedules.append(reservation)
+        reservations_and_schedules.append(reservation_and_schedule)
     with open(f"db\\shops\\{shop_num}\\{staff_num}\\{date}.pickle","wb") as fw:
         pickle.dump(reservations_and_schedules,fw)
-# def addSchedule():
-# def delReservation():
-# def delSchedule():
+        
+# def delReservationAndSchedule():
+
 def getReservationsAndSchedules(shop_num, staff_num, date):
     with open(f"db\\shops\\{shop_num}\\{staff_num}\\{date}.pickle","rb") as fr:
         return pickle.load(fr)
-# def getSchedules():
+    
 def getProcedures(shop_num, staff_num):
     with open(f"db\\shops\\{shop_num}\\{staff_num}\\procedures.pickle","rb") as fr:
         return pickle.load(fr)
