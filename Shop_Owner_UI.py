@@ -1,73 +1,42 @@
 from PyQt5.QtWidgets import *
-from PyQt5 import uic
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 import Server
 import Main
 import My_Structs
 import ShopInfo
+import ShopManagement
+import StaffManagement
+import ReservationManagement
+import ProfileManagement
 import os
 
 class shop_owner_window(QDialog,Main.form_shop_owner):
     def __init__(self):
         super().__init__()
-        self.setupUi(self)
-        self.setFixedSize(600, 400)
-        self.mainButton.clicked.connect(lambda: self.main_page())
-        self.shopButton.clicked.connect(lambda: self.shop_page(Main.num))
-        self.staffButton.clicked.connect(lambda: self.staff_page(Main.num))
-        self.reservationButton.clicked.connect(lambda: self.reservation_page())
-        self.profileButton.clicked.connect(lambda: self.profile_page())
-        self.mainButton.setStyleSheet("background-color: white")
-        self.shopButton.setStyleSheet("background-color: white")
-        self.staffButton.setStyleSheet("background-color: white")
-        self.reservationButton.setStyleSheet("background-color: white")
-        self.profileButton.setStyleSheet("background-color: white")
-        self.stackedWidget.setCurrentIndex(0)
+        self.si = ShopInfo.ShopInfo()
+        self.si.setWindow(self)
+        self.main_page()
         
     def main_page(self):
-        self.mainButton.setStyleSheet("background-color: grey")
-        self.shopButton.setStyleSheet("background-color: white")
-        self.staffButton.setStyleSheet("background-color: white")
-        self.reservationButton.setStyleSheet("background-color: white")
-        self.profileButton.setStyleSheet("background-color: white")
-        self.stackedWidget.setCurrentIndex(0)
-        layout = QVBoxLayout()
-        for i in range(len(Server.shops)):
-            if Server.shops[i].getNum() != -1:
-                button = QPushButton(Server.shops[i].getName())
-                button.clicked.connect(lambda checked, i=i: self.main_shop_info_page(i))
-                button.setFixedHeight(30)
-                layout.addWidget(button)
-        
-        content_widget = QWidget()
-        content_widget.setLayout(layout)
-        self.scrollArea.setWidget(content_widget)
-        layout.addStretch(1)
+        self.si.selectWindowShopOwner(self,0)
+        self.si.showMainPage(self)
     
     def main_shop_info_page(self,shop_num):
-        self.stackedWidget.setCurrentIndex(1)
-        self.name.setText(Server.shops[shop_num].getName())
-        self.address.setText(Server.shops[shop_num].getAddress())
-        self.backButton.clicked.connect(lambda: self.main_page())
-        si = ShopInfo.ShopInfo()
-        self.operation_hours.setText(si.ShopList(Server.shops[shop_num].getOperationHours()))
-        self.tel.setText(Server.shops[shop_num].getTel())
+        self.stackedWidget.setCurrentIndex(5)
+        self.si.showMainShopInfoPage(self,shop_num)
             
     def shop_page(self,shop_owner_num):
-        self.stackedWidget.setCurrentIndex(2)
-        self.mainButton.setStyleSheet("background-color: white")
-        self.shopButton.setStyleSheet("background-color: grey")
-        self.staffButton.setStyleSheet("background-color: white")
-        self.reservationButton.setStyleSheet("background-color: white")
-        self.profileButton.setStyleSheet("background-color: white")
+        self.si.selectWindowShopOwner(self,1)
         layout = QVBoxLayout()
-        shop_nums = Server.shop_owners[shop_owner_num].getShopNums()
+        shop_owners = Server.getShopOwners()
+        shops = Server.getShops()
+        shop_nums = shop_owners[shop_owner_num].getShopNums()
         for i in range(len(shop_nums)):
             item_widget = QWidget()
             item_layout = QHBoxLayout()
             
-            label = QLabel(Server.shops[shop_nums[i]].getName())
+            label = QLabel(shops[shop_nums[i]].getName())
             button1 = QPushButton("수정")
             button2 = QPushButton("삭제")
             label.setFixedHeight(20)
@@ -94,16 +63,17 @@ class shop_owner_window(QDialog,Main.form_shop_owner):
         layout.addStretch(1)
         
     def shop_mod_page(self,shop_num):
-        self.stackedWidget.setCurrentIndex(3)
+        shops = Server.getShops()
+        self.stackedWidget.setCurrentIndex(6)
         self.cancelButton.clicked.connect(lambda : self.shop_page(Main.num))
         self.okButton.clicked.connect(lambda : self.mod_ok(shop_num))
-        self.name_5.setText(Server.shops[shop_num].getName())
-        self.lineEdit.setText(Server.shops[shop_num].getAddress())
-        tel = list(Server.shops[shop_num].getTel().split("-"))
+        self.name_5.setText(shops[shop_num].getName())
+        self.lineEdit.setText(shops[shop_num].getAddress())
+        tel = list(shops[shop_num].getTel().split("-"))
         self.lineEdit_2.setText(tel[0])
         self.lineEdit_3.setText(tel[1])
         self.lineEdit_4.setText(tel[2])
-        operation_hours = Server.shops[shop_num].getOperationHours()
+        operation_hours = shops[shop_num].getOperationHours()
         
         if operation_hours[0] == -1:
             self.spinBox.setValue(0)
@@ -192,10 +162,12 @@ class shop_owner_window(QDialog,Main.form_shop_owner):
         
             
     def mod_ok(self,shop_num):
+        shops = Server.getShops()
         tel1 = self.lineEdit_2.text()
         tel2 = self.lineEdit_3.text()
         tel3 = self.lineEdit_4.text()
-        if not tel1.isdigit() or not tel2.isdigit() or not tel3.isdigit():
+        sm = ShopManagement.ShopManagement()
+        if not sm.checkTel(tel1,tel2,tel3):
             QMessageBox.about(self,' ','잘못된 전화번호입니다')
         else:
             address = self.lineEdit.text()
@@ -240,22 +212,18 @@ class shop_owner_window(QDialog,Main.form_shop_owner):
 
             else:  
                 operation_hours += [self.spinBox_7.value()*2 + self.spinBox_14.value()//30, self.spinBox_21.value()*2 + self.spinBox_28.value()//30]
+                
             for i in range(7):
                 if operation_hours[i*2] == operation_hours[i*2+1]:
                     operation_hours[i*2] = -1
                     operation_hours[i*2+1] = -1
-            if self.check_operation_hours(operation_hours):
+            
+            if sm.checkOperationHours(operation_hours):   
                 QMessageBox.about(self,' ','시간이 잘못 입력되었습니다')
             else:
-                Server.modShop(shop_num,My_Structs.Shop(Server.shops[shop_num].getName(),address,tel,operation_hours,shop_num))
+                Server.modShop(shop_num,My_Structs.Shop(shops[shop_num].getName(),address,tel,operation_hours,shop_num))
                 QMessageBox.about(self,' ','가게 수정이 완료되었습니다')
                 self.shop_page(Main.num)
-                    
-    def check_operation_hours(self,operations_hours):
-        for i in range(7):
-            if operations_hours[i*2] > operations_hours[i*2+1] or operations_hours[i*2] > 48 or operations_hours[i*2+1] > 48 :
-                return True
-        return False
             
     def delshop(self,shop_num):
         buttonReply = QMessageBox.information(self,' ','삭제하시겠습니까?', QMessageBox.Yes | QMessageBox.No)
@@ -272,93 +240,93 @@ class shop_owner_window(QDialog,Main.form_shop_owner):
         self.lineEdit_8.setText("")
         self.lineEdit_9.setText("가게 이름")
         
-        self.stackedWidget.setCurrentIndex(4)
+        self.stackedWidget.setCurrentIndex(7)
         self.cancelButton_2.clicked.connect(lambda: self.shop_page(Main.num))
         self.okButton_2.disconnect()
         self.okButton_2.clicked.connect(lambda: self.add_ok())
         
     def add_ok(self):
-            tel1 = self.lineEdit_8.text()
-            tel2 = self.lineEdit_6.text()
-            tel3 = self.lineEdit_5.text()
-            if not tel1.isdigit() or not tel2.isdigit() or not tel3.isdigit():
-                QMessageBox.about(self,' ','잘못된 전화번호입니다')
+        shops = Server.getShops()
+        tel1 = self.lineEdit_8.text()
+        tel2 = self.lineEdit_6.text()
+        tel3 = self.lineEdit_5.text()
+        sm = ShopManagement.ShopManagement()
+        if not sm.checktel(tel1,tel2,tel3):
+            QMessageBox.about(self,' ','잘못된 전화번호입니다')
+        else:
+            name = self.lineEdit_9.text()
+            address = self.lineEdit_7.text()
+            tel = tel1 + '-' + tel2 + '-' + tel3
+            operation_hours = []
+            if self.checkBox.isChecked():
+                operation_hours += [-1,-1]
+            else:  
+                operation_hours += [self.spinBox_54.value()*2 + self.spinBox_56.value()//30, self.spinBox_43.value()*2 + self.spinBox_40.value()//30]
+            if self.checkBox_2.isChecked():
+                operation_hours += [-1,-1]
+            
             else:
-                name = self.lineEdit_9.text()
-                address = self.lineEdit_7.text()
-                tel = tel1 + '-' + tel2 + '-' + tel3
-                operation_hours = []
-                if self.checkBox.isChecked():
-                    operation_hours += [-1,-1]
-                else:  
-                    operation_hours += [self.spinBox_54.value()*2 + self.spinBox_56.value()//30, self.spinBox_43.value()*2 + self.spinBox_40.value()//30]
-                if self.checkBox_2.isChecked():
-                    operation_hours += [-1,-1]
-                
-                else:
-                    operation_hours += [self.spinBox_42.value()*2 + self.spinBox_36.value()//30, self.spinBox_37.value()*2 + self.spinBox_38.value()//30]
-                
-                if self.checkBox_3.isChecked():
-                    operation_hours += [-1,-1]
-                
-                else:  
-                    operation_hours += [self.spinBox_35.value()*2 + self.spinBox_51.value()//30, self.spinBox_53.value()*2 + self.spinBox_48.value()//30]
-                
-                if self.checkBox_4.isChecked():
-                    operation_hours += [-1,-1]
-                
-                else:  
-                    operation_hours += [self.spinBox_55.value()*2 + self.spinBox_47.value()//30, self.spinBox_41.value()*2 + self.spinBox_44.value()//30]
-                
-                if self.checkBox_5.isChecked():
-                    operation_hours += [-1,-1]
-                
-                else:  
-                    operation_hours += [self.spinBox_33.value()*2 + self.spinBox_46.value()//30, self.spinBox_49.value()*2 + self.spinBox_32.value()//30]
-                
-                if self.checkBox_6.isChecked():
-                    operation_hours += [-1,-1]
-                
-                else:  
-                    operation_hours += [self.spinBox_34.value()*2 + self.spinBox_45.value()//30, self.spinBox_50.value()*2 + self.spinBox_39.value()//30]
-                
-                if self.checkBox_7.isChecked():
-                    operation_hours += [-1,-1]
+                operation_hours += [self.spinBox_42.value()*2 + self.spinBox_36.value()//30, self.spinBox_37.value()*2 + self.spinBox_38.value()//30]
+            
+            if self.checkBox_3.isChecked():
+                operation_hours += [-1,-1]
+            
+            else:  
+                operation_hours += [self.spinBox_35.value()*2 + self.spinBox_51.value()//30, self.spinBox_53.value()*2 + self.spinBox_48.value()//30]
+            
+            if self.checkBox_4.isChecked():
+                operation_hours += [-1,-1]
+            
+            else:  
+                operation_hours += [self.spinBox_55.value()*2 + self.spinBox_47.value()//30, self.spinBox_41.value()*2 + self.spinBox_44.value()//30]
+            
+            if self.checkBox_5.isChecked():
+                operation_hours += [-1,-1]
+            
+            else:  
+                operation_hours += [self.spinBox_33.value()*2 + self.spinBox_46.value()//30, self.spinBox_49.value()*2 + self.spinBox_32.value()//30]
+            
+            if self.checkBox_6.isChecked():
+                operation_hours += [-1,-1]
+            
+            else:  
+                operation_hours += [self.spinBox_34.value()*2 + self.spinBox_45.value()//30, self.spinBox_50.value()*2 + self.spinBox_39.value()//30]
+            
+            if self.checkBox_7.isChecked():
+                operation_hours += [-1,-1]
 
-                else:  
-                    operation_hours += [self.spinBox_29.value()*2 + self.spinBox_52.value()//30, self.spinBox_31.value()*2 + self.spinBox_30.value()//30]
-                shop_num = -1
-                for i in range(len(Server.shops)):
-                    if Server.shops[i].getNum() == -1:
-                        shop_num = i
-                        break
-                if shop_num == -1:
-                    shop_num = len(Server.shops)
-                
-                Server.addShop(Main.num,My_Structs.Shop(name,address,tel,operation_hours,shop_num))
-                QMessageBox.about(self,' ','가게 생성이 완료되었습니다')
-                self.shop_page(Main.num)
+            else:  
+                operation_hours += [self.spinBox_29.value()*2 + self.spinBox_52.value()//30, self.spinBox_31.value()*2 + self.spinBox_30.value()//30]
+            shop_num = -1
+            for i in range(len(shops)):
+                if shops[i].getNum() == -1:
+                    shop_num = i
+                    break
+            if shop_num == -1:
+                shop_num = len(shops)
+            
+            Server.addShop(Main.num,My_Structs.Shop(name,address,tel,operation_hours,shop_num))
+            QMessageBox.about(self,' ','가게 생성이 완료되었습니다')
+            self.shop_page(Main.num)
         
     def staff_page(self,shop_owner_num):
-        self.mainButton.setStyleSheet("background-color: white")
-        self.shopButton.setStyleSheet("background-color: white")
-        self.staffButton.setStyleSheet("background-color: grey")
-        self.reservationButton.setStyleSheet("background-color: white")
-        self.profileButton.setStyleSheet("background-color: white")
-        self.stackedWidget.setCurrentIndex(5)
-        shop_nums = Server.shop_owners[shop_owner_num].getShopNums()
+        self.si.selectWindowShopOwner(self,2)
+        shop_owners = Server.getShopOwners()
+        shops = Server.getShops()
+        shop_nums = shop_owners[shop_owner_num].getShopNums()
         self.comboBox.clear()
         self.comboBox.addItem("가게 선택")
         self.scrollArea_4.setWidget(QWidget())
         
         for i in range(len(shop_nums)):
-            self.comboBox.addItem(Server.shops[shop_nums[i]].getName())
+            self.comboBox.addItem(shops[shop_nums[i]].getName())
         self.comboBox.model().item(0).setEnabled(False)
         
         self.okButton_5.clicked.connect(lambda: self.staff_info_page(shop_nums))
         
         
     def staff_info_page(self,shop_nums):
+        shop_staffs = Server.getShopStaffs()
         selected_shop_index = self.comboBox.currentIndex() - 1
         if selected_shop_index < 0:
             return
@@ -372,7 +340,7 @@ class shop_owner_window(QDialog,Main.form_shop_owner):
             item_widget = QWidget()
             item_layout = QHBoxLayout()
             
-            label1 = QLabel(Server.shop_staffs[staff_nums[i]].getName())
+            label1 = QLabel(shop_staffs[staff_nums[i]].getName())
             procedures = Server.getProcedures(shop_num ,staff_nums[i])
             procedures_s = ""
             for j in range(len(procedures)):
@@ -410,9 +378,11 @@ class shop_owner_window(QDialog,Main.form_shop_owner):
         
         
     def staff_mod_page(self,shop_num,staff_num):
-        self.stackedWidget.setCurrentIndex(6)
-        self.label_5.setText(Server.shops[shop_num].getName())
-        self.label_6.setText(Server.shop_staffs[staff_num].getName())
+        shops = Server.getShops()
+        shop_staffs = Server.getShopStaffs()
+        self.stackedWidget.setCurrentIndex(8)
+        self.label_5.setText(shops[shop_num].getName())
+        self.label_6.setText(shop_staffs[staff_num].getName())
         
         procedures =  Server.getProcedures(shop_num, staff_num)
         layout = QVBoxLayout()
@@ -501,8 +471,9 @@ class shop_owner_window(QDialog,Main.form_shop_owner):
             self.staff_page(Main.num)
         
     def staff_add_page(self,shop_num):
-        self.stackedWidget.setCurrentIndex(7)
-        self.label_8.setText(Server.shops[shop_num].getName())
+        shops = Server.getShops()
+        self.stackedWidget.setCurrentIndex(9)
+        self.label_8.setText(shops[shop_num].getName())
         self.okButton_4.clicked.connect(lambda : self.addStaff(shop_num))
         self.cancelButton_3.clicked.connect(lambda : self.staff_page(Main.num))
         
@@ -517,15 +488,8 @@ class shop_owner_window(QDialog,Main.form_shop_owner):
         else:
             QMessageBox.about(self,' ','유효하지않은 회원번호입니다')
                     
-    # def reservation(self):
-    #     self.mainButton.setStyleSheet("background-color: white")
-    #     self.shopButton.setStyleSheet("background-color: white")
-    #     self.staffButton.setStyleSheet("background-color: white")
-    #     self.reservationButton.setStyleSheet("background-color: grey")
-    #     self.profileButton.setStyleSheet("background-color: white")
-    # def profile(self):
-    #     self.mainButton.setStyleSheet("background-color: white")
-    #     self.shopButton.setStyleSheet("background-color: white")
-    #     self.staffButton.setStyleSheet("background-color: white")
-    #     self.reservationButton.setStyleSheet("background-color: white")
-    #     self.profileButton.setStyleSheet("background-color: grey")
+    def reservation_page(self):
+        self.si.selectWindowShopOwner(self,3)
+        
+    def profile_page(self):
+        self.si.selectWindowShopOwner(self,4)
