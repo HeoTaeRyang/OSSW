@@ -144,10 +144,10 @@ def getProcedures(shop_num, staff_num):
     with open(f"db\\shops\\{shop_num}\\{staff_num}\\procedures.pickle","rb") as fr:
         return pickle.load(fr)
     
-def getShop_Owners():
+def getShopOwners():
     return shop_owners
 
-def getShop_Staffs():
+def getShopStaffs():
     return shop_staffs
 
 def getCustomers():
