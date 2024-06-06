@@ -45,4 +45,4 @@ class Registration:
         if self.classification == 1:
             Server.addShopStaff(My_Structs.ShopStaff(self.ID, self.PW, self.name, self.tel,len(Server.shop_staffs),-1))
         if self.classification == 2:
-            Server.addCustomer(My_Structs.Member(self.ID, self.PW, self.name, self.tel,len(Server.customers)))
+            Server.addCustomer(My_Structs.Customer(self.ID, self.PW, self.name, self.tel,len(Server.customers),[]))

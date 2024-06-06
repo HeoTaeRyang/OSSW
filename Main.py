@@ -10,11 +10,11 @@ form_registration = uic.loadUiType("ui\\registration.ui")[0]
 form_shop_owner = uic.loadUiType("ui\\shop_owner.ui")[0]
 form_shop_staff = uic.loadUiType("ui\\shop_staff.ui")[0]
 form_customer = uic.loadUiType("ui\\customer.ui")[0]
-num = -1
 
 if __name__ == "__main__" :
+    num = -1
     app = QApplication(sys.argv) 
-
+    
     myWindow = Login_UI.login_window() 
     myWindow.show()
 
