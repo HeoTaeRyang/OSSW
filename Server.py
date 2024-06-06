@@ -2,11 +2,6 @@ import pickle
 import os
 import shutil
 
-# with open("db\\shops\\0\0\\2000-01-01.pickle","rb") as fr:
-#     l = pickle.load(fr)
-    
-# print(l)
-
 with open("db\\members\\shop_owners.pickle","rb") as fr:
     shop_owners = pickle.load(fr)
 
